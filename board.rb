@@ -47,6 +47,10 @@ class Board
     dup_board
   end
 
+  def pieces
+    rows.flatten.compact
+  end
+
   private
   def setup_board
     add_pieces(:white)
@@ -73,9 +77,5 @@ class Board
 
   def rows
     @grid
-  end
-
-  def pieces
-    rows.flatten.compact
   end
 end

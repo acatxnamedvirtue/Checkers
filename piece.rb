@@ -112,6 +112,10 @@ class Piece
     SLIDE_DIFFS[color]
   end
 
+  def all_moves
+    slide_moves + jump_moves
+  end
+
   def slide_moves
     slide_diffs(color).map { |d_pos| calc_new_move(d_pos)}.select{|move| valid_move?(move)}
   end
@@ -167,7 +171,7 @@ class Piece
   end
 
   def valid_move?(move_pos)
-      board[move_pos].nil? && in_bounds?(move_pos)
+       in_bounds?(move_pos) && board[move_pos].nil?
   end
 
   def in_bounds?(move_pos)
