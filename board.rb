@@ -48,6 +48,10 @@ class Board
     @grid[row][col] = value
   end
 
+  def move(start_pos, move_pos)
+    self[start_pos].move(move_pos)
+  end
+
   def add_white_pieces
     rows.each_with_index do |row, row_index|
       next if row_index > 2
@@ -55,10 +59,10 @@ class Board
         case row_index.even?
         when true # even rows
           next if col_index.even?
-          self[[row_index,col_index]] = Piece.new(:white, [row_index, col_index])
+          self[[row_index,col_index]] = Piece.new(self, :white, [row_index, col_index])
         when false # odd rows
           next if col_index.odd?
-          self[[row_index,col_index]] = Piece.new(:white, [row_index, col_index])
+          self[[row_index,col_index]] = Piece.new(self, :white, [row_index, col_index])
         end
       end
     end
@@ -71,10 +75,10 @@ class Board
         case row_index.even?
         when true # even rows
           next if col_index.even?
-          self[[row_index,col_index]] = Piece.new(:black, [row_index, col_index])
+          self[[row_index,col_index]] = Piece.new(self, :black, [row_index, col_index])
         when false # odd rows
           next if col_index.odd?
-          self[[row_index,col_index]] = Piece.new(:black, [row_index, col_index])
+          self[[row_index,col_index]] = Piece.new(self, :black, [row_index, col_index])
         end
       end
     end
@@ -84,3 +88,6 @@ end
 board = Board.new
 # p board.rows
 board.render
+board.move([2,1],[3,0])
+board.render
+p board[[3,0]].slide_moves
