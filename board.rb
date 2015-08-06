@@ -54,12 +54,7 @@ class Board
   end
 
   def tile_color(row, col)
-    case row.even?
-    when true #rows 0,2,4,6
-      col.even? ? :light_white : :red
-    when false #rows 1,3,5,7
-      col.even? ? :red : :light_white
-    end
+    row.even? ? (col.even? ? :light_white : :red) : (col.even? ? :red : :light_white)
   end
 
   def color_setter(color)
@@ -70,13 +65,14 @@ class Board
   def add_pieces(color)
     color_setter(color).each do |row|
       (0..(SIZE - 1)).each do |col|
-        case row.even?
-        when true # even rows
-          next if col.even?
-          self[[row,col]] = Piece.new(self, color, [row, col])
-        when false # odd rows
-          next if col.odd?
-          self[[row,col]] = Piece.new(self, color, [row, col])
+        if row.even?
+          if col.odd?
+            self[[row,col]] = Piece.new(self, color, [row, col])
+          end
+        elsif row.odd?
+          if col.even?
+            self[[row,col]] = Piece.new(self, color, [row, col])
+          end
         end
       end
     end
@@ -88,4 +84,9 @@ class Board
 end
 
 board = Board.new
+
+board.move([2,1],[3,2])
+board.move([5,4],[4,3])
+board.render
+board.move([4,3],[2,1])
 board.render
