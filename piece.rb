@@ -1,5 +1,3 @@
-require 'colorize'
-
 class Piece
 
   UNICODE = {
@@ -20,12 +18,16 @@ class Piece
     }
   }
 
-  JUMP_DIFFS = [
-    [-2, -2],
-    [ 2, -2],
-    [-2,  2],
-    [ 2,  2]
-  ]
+  JUMP_DIFFS = {
+    :white => {
+      :pawn => [[ 2,  2], [ 2, -2]],
+      :king => [[ 2,  2], [ 2, -2], [-2, -2], [-2,  2]]
+    },
+    :black => {
+      :pawn => [[-2, -2], [-2,  2]],
+      :king => [[ 2,  2], [ 2, -2], [-2, -2], [-2,  2]]
+    }
+  }
 
 
   attr_reader :color, :rank
@@ -55,17 +57,8 @@ class Piece
     @rank = :king
   end
 
-  def white_slide_diffs
-    SLIDE_DIFFS[:white]
-  end
-
-  def black_slide_diffs
-    SLIDE_DIFFS[:black]
-  end
-
   def slide_moves
     slide_moves = []
-
 
     slide_diffs[color][rank].each do |d_pos|
       new_move = calculate_new_move(d_pos)
@@ -76,9 +69,46 @@ class Piece
   end
 
   def perform_slide(move_pos)
-    return false unless board[move_pos].nil? && slide_moves.include?(move_pos)
+    return false unless slide_moves.include?(move_pos)
 
     move(move_pos)
+    maybe_promote
+  end
+
+  def jump_moves
+    jump_moves = []
+
+    jump_diffs[color][rank].each do |d_pos|
+      new_move = calculate_new_move(d_pos)
+      opponent_pos = calculate_opponent_pos(d_pos)
+
+      jump_moves << new_move if valid_move?(new_move) && opponent_piece?(opponent_pos)
+    end
+
+    jump_moves
+  end
+
+  def opponent_piece?(opponent_pos)
+    return false if board[opponent_pos].nil? || board[opponent_pos].color == color
+
+    true
+  end
+
+  def perform_jump(move_pos)
+    return false unless jump_moves.include?(move_pos)
+
+    delete_piece(self.pos, move_pos)
+    move(move_pos)
+    maybe_promote
+  end
+
+  def delete_piece(start_pos, move_pos)
+    start_row, start_col = start_pos
+    move_row, move_col = move_pos
+    delete_row = start_row - (start_row - move_row)/2
+    delete_col = start_col - (start_col - move_col)/2
+
+    board[[delete_row, delete_col]] = nil
   end
 
   def move(move_pos)
@@ -96,16 +126,21 @@ class Piece
     [new_row, new_col]
   end
 
+  def calculate_opponent_pos(d_pos)
+    orig_row, orig_col = pos
+    d_row, d_col = d_pos
+    new_row = orig_row + (d_row / 2)
+    new_col = orig_col + (d_col / 2)
+
+    [new_row, new_col]
+  end
+
   def valid_move?(move_pos)
-      board[move_pos].nil? &&
-      in_bounds?(move_pos)
+      board[move_pos].nil? && in_bounds?(move_pos)
   end
 
   def in_bounds?(move_pos)
     move_pos.all? { |coord| coord.between?(0,7) }
-  end
-
-  def perform_jump(move_pos)
   end
 
   def maybe_promote
@@ -121,15 +156,15 @@ class Piece
     case color
     when :white
       if king?
-        UNICODE[:white_king].encode.underline
+        UNICODE[:white_king].encode
       else
-        UNICODE[:white_pawn].encode.underline
+        UNICODE[:white_pawn].encode
       end
     when :black
       if king?
-        UNICODE[:black_king].encode.underline
+        UNICODE[:black_king].encode
       else
-        UNICODE[:black_pawn].encode.underline
+        UNICODE[:black_pawn].encode
       end
     end
   end

@@ -1,4 +1,5 @@
 require_relative 'piece'
+require 'colorize'
 
 class Board
   SIZE = 8
@@ -18,19 +19,38 @@ class Board
 
 
   def render
-    puts "   0 1 2 3 4 5 6 7"
-    puts "   _______________"
+    system("clear")
+    puts "    0  1  2  3  4  5  6  7"
+    puts "   ________________________"
     rows.each_with_index do |row, row_index|
       print "#{row_index} |"
-      row.each do |tile|
+      row.each_with_index do |tile, col_index|
         if tile.nil?
-          print "_|"
+          print "   ".colorize(:background => tile_color(row_index, col_index))
         else
-          print "#{tile.to_s}|"
+          print " #{tile.to_s} ".colorize(:background => tile_color(row_index, col_index))
         end
-        # tile.nil? ? (print "_ ") : (print tile.to_s)
       end
-      puts
+      puts "|"
+    end
+  end
+
+  def tile_color(row, col)
+    case row.even?
+    when true #rows 0,2,4,6
+      case col.even?
+      when true
+        :light_white
+      when false
+        :red
+      end
+    when false #rows 1,3,5,7
+      case col.even?
+      when true
+        :red
+      when false
+        :light_white
+      end
     end
   end
 
@@ -86,8 +106,4 @@ class Board
 end
 
 board = Board.new
-# p board.rows
 board.render
-board.move([2,1],[3,0])
-board.render
-p board[[3,0]].slide_moves
