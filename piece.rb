@@ -21,15 +21,16 @@ class Piece
 
   KING_JUMP_DIFFS = [[ 2,  2], [ 2, -2], [-2, -2], [-2,  2]]
 
-  attr_reader :color, :rank, :board
+  attr_reader :color, :board
 
-  attr_accessor :pos
+  attr_accessor :pos, :king
 
   def initialize(board, color, pos)
     @board = board
     @color = color
     @king = false
     @pos = pos
+    @board[pos] = self
   end
 
   def perform_slide(move_pos)
@@ -50,7 +51,39 @@ class Piece
 
     true
   end
-  
+
+  def perform_moves(move_sequence)
+    if valid_move_seq?(move_sequence)
+      perform_moves!(move_sequence)
+    else
+      raise InvalidMoveError
+    end
+  end
+
+  def perform_moves!(move_sequence)
+    moves = move_sequence
+    until moves.empty?
+      if move_sequence.count == 1 && slide_moves.include?(moves.first)
+        perform_slide(moves.shift)
+      elsif jump_moves.include?(moves.first)
+        perform_jump(moves.shift)
+      else
+        raise InvalidMoveError
+      end
+    end
+  end
+
+  def valid_move_seq?(move_sequence)
+    begin
+      dup_board = board.dup
+      perform_moves!(move_sequence)
+    rescue
+      false
+    else
+      true
+    end
+  end
+
   def to_s
     case color
     when :white
@@ -97,7 +130,7 @@ class Piece
   end
 
   def opponent_piece?(opponent_pos)
-    !board[opponent_pos].nil? || board[opponent_pos].color == color
+    !(board[opponent_pos].nil? || board[opponent_pos].color == color)
   end
 
   def delete_jumped_piece(start_pos, move_pos)
@@ -158,4 +191,7 @@ class Piece
   def king?
     @king
   end
+end
+
+class InvalidMoveError < StandardError
 end

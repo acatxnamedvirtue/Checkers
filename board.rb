@@ -1,6 +1,3 @@
-require_relative 'piece'
-require 'colorize'
-
 class Board
   SIZE = 8
 
@@ -36,15 +33,18 @@ class Board
     @grid[row][col] = value
   end
 
-  def move(start_pos, end_pos)
-    piece = self[start_pos]
-    if piece.slide_moves.include?(end_pos)
-      piece.perform_slide(end_pos)
-    elsif piece.jump_moves.include?(end_pos)
-      piece.perform_jump(end_pos)
-    else
-      puts "Not a valid move!"
+  def move(start_pos, move_sequence)
+    self[start_pos].perform_moves(move_sequence)
+  end
+
+  def dup
+    dup_board = Board.new(false)
+
+    pieces.each do |piece|
+      Piece.new(dup_board, piece.color, piece.pos.dup)
     end
+
+    dup_board
   end
 
   private
@@ -65,15 +65,8 @@ class Board
   def add_pieces(color)
     color_setter(color).each do |row|
       (0..(SIZE - 1)).each do |col|
-        if row.even?
-          if col.odd?
-            self[[row,col]] = Piece.new(self, color, [row, col])
-          end
-        elsif row.odd?
-          if col.even?
-            self[[row,col]] = Piece.new(self, color, [row, col])
-          end
-        end
+          Piece.new(self, color, [row, col]) if (row.even? && col.odd?) ||
+                                                  (row.odd? && col.even?)
       end
     end
   end
@@ -81,12 +74,8 @@ class Board
   def rows
     @grid
   end
+
+  def pieces
+    rows.flatten.compact
+  end
 end
-
-board = Board.new
-
-board.move([2,1],[3,2])
-board.move([5,4],[4,3])
-board.render
-board.move([4,3],[2,1])
-board.render
